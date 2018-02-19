@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<JwtAuthHandlerConfig>
+	<Aliases>equifaxsecureebusinessca2,wso2carbon</Aliases>
+	<JwtHttpHeader>X-JWT-Assertion</JwtHttpHeader>
+	<JwtIssuer>wso2.org/products/am</JwtIssuer>
+	<KeystoreFilename>src/test/resources/wso2carbon.jks</KeystoreFilename>
+	<KeystorePassword>wso2carbon</KeystorePassword>
+</JwtAuthHandlerConfig>
