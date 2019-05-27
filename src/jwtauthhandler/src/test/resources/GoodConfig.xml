@@ -1,8 +1,32 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<JwtAuthHandlerConfig>
-	<Aliases>equifaxsecureebusinessca2,wso2carbon</Aliases>
-	<JwtHttpHeader>X-JWT-Assertion</JwtHttpHeader>
-	<JwtIssuer>wso2.org/products/am</JwtIssuer>
-	<KeystoreFilename>src/test/resources/wso2carbon.jks</KeystoreFilename>
-	<KeystorePassword>wso2carbon</KeystorePassword>
+<!-- JwtType = "plain", "signed", "encrypted"> -->
+<JwtAuthHandlerConfig JwtType="signed" EnforceJwtExpiration="true">
+  <Keystores>
+    <!-- For JWT description, where the private key is required -->
+    <Keystore PrivateKeyAlias="wso2carbon" PrivateKeyVaultKey="wso2carbon">
+      <Location>src/test/resources/wso2carbon.jks</Location>
+      <AuthorizedAliases>
+        <Alias>equifaxsecureebusinessca2</Alias>
+        <Alias>wso2carbon</Alias>
+      </AuthorizedAliases>
+    </Keystore>
+    <!-- For JWT Signing, where only the public key is required 
+    <Keystore KeystoreVaultKey="wso2carbon" CertificateAlias="wso2carbon">
+      C:\Program Files\WSO2\wso2ei-6.4.0\repository\resources\security\wso2carbon.jks
+    </Keystore>
+    -->
+  </Keystores>
+  <JwtHttpHeader>X-JWT-Assertion</JwtHttpHeader>
+  <JwtClaimsMap>
+    <Map>
+      <JwtClaim>http://wso2.org/claims/subscriber</JwtClaim>
+      <ContextProperty>username</ContextProperty>
+      <Required>true</Required>
+    </Map>
+    <Map>
+      <JwtClaim>http://wso2.org/claims/role</JwtClaim>
+      <ContextProperty>username</ContextProperty>
+      <Required>true</Required>
+    </Map>
+  </JwtClaimsMap>
 </JwtAuthHandlerConfig>

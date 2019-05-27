@@ -16,6 +16,14 @@
 			<name>WSO2 internal Repository</name>
 			<url>http://maven.wso2.org/nexus/content/groups/wso2-public/</url>
 		</repository>
+		<repository>
+			<id>sun1</id>
+			<url>http://download.java.net/maven/1</url>
+		</repository>
+		<repository>
+			<id>sun2</id>
+			<url>http://download.java.net/maven/2</url>
+		</repository>
 	</repositories>
 	<dependencies>
 		<!-- Check https://github.com/wso2-attic/product-esb/blob/v5.0.0/pom.xml 
