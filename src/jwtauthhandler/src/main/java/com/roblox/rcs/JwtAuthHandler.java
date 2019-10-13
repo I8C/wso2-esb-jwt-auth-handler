@@ -1,4 +1,4 @@
-package be.i8c.wso2.esb;
+package com.roblox.rcs;
 /*  
  * Copyright 2018 i8c N.V. (www.i8c.be)
  *
@@ -16,19 +16,28 @@ package be.i8c.wso2.esb;
  */
 
 import java.util.Map;
+
+import javax.xml.stream.XMLStreamException;
+
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
 import java.text.ParseException;
 
-
 import org.apache.axiom.om.OMElement;
+import org.apache.axiom.om.OMDocument;
+import org.apache.axiom.om.impl.builder.StAXOMBuilder;
 import org.apache.commons.httpclient.util.HttpURLConnection;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.apache.commons.io.FileUtils;
 import org.apache.synapse.ManagedLifecycle;
 import org.apache.synapse.MessageContext;
 import org.apache.synapse.SynapseException;
 import org.apache.synapse.core.SynapseEnvironment;
 import org.apache.synapse.core.axis2.Axis2MessageContext;
 import org.apache.synapse.core.axis2.Axis2Sender;
+import org.apache.synapse.config.SynapseConfigUtils;
 import org.apache.synapse.registry.Registry;
 import org.apache.synapse.rest.AbstractHandler;
 import com.nimbusds.jwt.JWT;
@@ -36,77 +45,38 @@ import com.nimbusds.jwt.SignedJWT;
 import com.nimbusds.jwt.PlainJWT;
 import com.nimbusds.jwt.EncryptedJWT;
 
-import be.i8c.wso2.esb.JwtDecryptor;
-import be.i8c.wso2.esb.JwtClaimsMap;
+import com.roblox.rcs.JwtDecryptor;
+import com.roblox.rcs.JwtClaimsMap;
 
-import be.i8c.wso2.esb.Utils;
+import com.roblox.rcs.Utils;
 
-/*
- * Implements a WSO2 ESB security handler as described in 
- * https://docs.wso2.com/display/ESB490/Securing+APIs.
- * See also:
- *  - https://docs.wso2.com/display/AM200/Writing+Custom+Handlers
- *  - https://github.com/wso2/carbon-appmgt/blob/master/components/org.wso2.carbon.appmgt.gateway/src/main/java/org/wso2/carbon/appmgt/gateway/handlers/throttling/APIThrottleHandler.java
- *  
- * Expects a JWT from the WSO2 API Manager as input with each request
- * (see also: https://docs.wso2.com/display/AM210/Passing+Enduser+Attributes+to+the+Backend+Using+JWT).
- * 
- * Usage:
- * Add the following section at the bottom of your <api></api> config:
- * <handlers>
- *    <handler class="be.i8c.wso2.esb.JwtAuthHandler">
- *       <property name="configKey" 
- *       value="conf:/repository/components/be.i8c.wso2.esb/JwtAuthHandlerConfig.xml"/> 
- *    </handler>
- * </handlers>
- * 
- * The config file to which the configKey property points in the registry of the ESB,
- * should contain the following XML structure. Note the "..VaultKey" attributes which
- * are NOT direct values but aliases to encrypted entries in the ESB Secure Vault.
- * (The following is not * prefixed to facilitate a copy/paste deployment)
- <JwtAuthHandlerConfig JwtType="encrypted">
-  <Keystores>
-    <!-- for JwtType="encrypted" the private key is required -->
-    <Keystore KeystoreVaultKey="wso2carbon" PrivateKeyVaultKey="wso2carbon">
-      C:\Program Files\WSO2\wso2ei-6.4.0\repository\resources\security\wso2carbon.jks
-    </Keystore>
-    <!-- For JwtType="signed" where only the public key is required 
-    <Keystore KeystoreVaultKey="wso2carbon" CertificateAlias="wso2carbon">
-      C:\Program Files\WSO2\wso2ei-6.4.0\repository\resources\security\wso2carbon.jks
-    </Keystore>
-    -->
-  </Keystores>
-  <JwtHttpHeader>X-JWT-Assertion</JwtHttpHeader>
-  <JwtIssuer>wso2.org/products/am</JwtIssuer>
-  <JwtClaimsMap>
-    <Map>
-      <JwtClaim>http://wso2.org/claims/subscriber</JwtClaim>
-      <ContextProperty>username</ContextProperty>
-      <Required>true</Required>
-    </Map>
-      <Map>
-      <JwtClaim>http://wso2.org/claims/role</JwtClaim>
-      <ContextProperty>roles</ContextProperty>
-      <Required>true</Required>
-    </Map>
-  </JwtClaimsMap>
-</JwtAuthHandlerConfig>
- * 
- */
 public class JwtAuthHandler extends AbstractHandler implements ManagedLifecycle {
+
+	public static final String CARBON_CONFIG_DIR_PATH = "carbon.config.dir.path";
+	public static final String CARBON_SERVICEPACKS_DIR_PATH = "carbon.servicepacks.dir.path";
+	public static final String CARBON_DROPINS_DIR_PATH = "carbon.dropins.dir.path";
+	public static final String CARBON_EXTERNAL_LIB_DIR_PATH = "carbon.external.lib.dir.path"; // components/lib
+	public static final String CARBON_EXTENSIONS_DIR_PATH = "carbon.extensions.dir.path";
+	public static final String CARBON_COMPONENTS_DIR_PATH= "carbon.components.dir.path";
+	public static final String CARBON_PATCHES_DIR_PATH = "carbon.patches.dir.path";
+	public static final String CARBON_INTERNAL_LIB_DIR_PATH = "carbon.internal.lib.dir.path"; //lib normally internal tomcat
+	public static final String CARBON_CONFIG_DIR_PATH_ENV = "CARBON_CONFIG_DIR_PATH";
+	public static final String CARBON_HOME = "carbon.home";
+	public static final String CARBON_HOME_ENV = "CARBON_HOME";
+	public static final String AXIS2_CONFIG_REPO_LOCATION = "Axis2Config.RepositoryLocation";
 
   private Log log = LogFactory.getLog(getClass());
 
   private String configKey;
-  
+
   private String jwtHeaderName;
 
   private JwtValidator jwtValidator;
-  
+
   private JwtDecryptor jwtDecryptor;
-  
+
   private JwtClaimsMap jwtClaimsMap;
-  
+
   private OMElement config;
 
   public static final String jwtValidatorRootConfigKey = "JwtAuthHandlerConfig";
@@ -118,18 +88,32 @@ public class JwtAuthHandler extends AbstractHandler implements ManagedLifecycle 
 
   @Override
   public void init(SynapseEnvironment synapseEnvironment) {
-    log.debug("Initializing with configKey = " + getConfigKey());
+    log.info("Initializing with configKey = " + getConfigKey());
     if (getConfigKey() == null) {
       throw new SynapseException("Configuration key required but not specified!");
     }
-    
-    Registry reg = synapseEnvironment.getSynapseConfiguration().getRegistry();
 
-    if (reg == null) {
-      throw new SynapseException("Registry is null");
+
+
+    String configFilePath = getCarbonConfigDirPath() + File.separator + getConfigKey();
+
+    log.info("Loading config file from path: " + configFilePath);
+
+    InputStream configStream = null;
+    try {
+      configStream = FileUtils.openInputStream(new File(configFilePath));
+    } catch (IOException e) {
+      e.printStackTrace();
+    }
+
+    StAXOMBuilder builder = null;
+    try {
+      builder = new StAXOMBuilder(configStream);
+    } catch (XMLStreamException e) {
+      e.printStackTrace();
     }
     
-    config = (OMElement) reg.lookup(getConfigKey());
+    config = builder.getDocumentElement();
     
     if (config.getLocalName() != jwtValidatorRootConfigKey) {
 		throw new SynapseException(
@@ -247,5 +231,31 @@ public class JwtAuthHandler extends AbstractHandler implements ManagedLifecycle 
   public void setConfigKey(String configKey) {
     this.configKey = configKey;
   }
+
+
+  // Blatently stolen from:L
+  // core/org.wso2.carbon.base/src/main/java/org/wso2/carbon/base/CarbonBaseUtils.java
+  public static String getCarbonConfigDirPath() {
+		String carbonConfigDirPath = System
+				.getProperty(CARBON_CONFIG_DIR_PATH);
+		if (carbonConfigDirPath == null) {
+			carbonConfigDirPath = System
+					.getenv(CARBON_CONFIG_DIR_PATH_ENV);
+			if (carbonConfigDirPath == null) {
+				return getCarbonHome() + File.separator + "repository"
+						+ File.separator + "conf";
+			}
+		}
+		return carbonConfigDirPath;
+  }
+  
+  public static String getCarbonHome() {
+		String carbonHome = System.getProperty(CARBON_HOME);
+		if (carbonHome == null) {
+			carbonHome = System.getenv(CARBON_HOME_ENV);
+			System.setProperty(CARBON_HOME, carbonHome);
+		}
+		return carbonHome;
+	}
 
 }

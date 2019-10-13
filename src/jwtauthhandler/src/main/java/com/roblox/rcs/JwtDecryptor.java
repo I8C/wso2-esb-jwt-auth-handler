@@ -1,4 +1,4 @@
-package be.i8c.wso2.esb;
+package com.roblox.rcs;
 /*  
  * Copyright 2018 i8c N.V. (www.i8c.be)
  *
@@ -28,7 +28,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 
-import be.i8c.wso2.esb.Keystore;
+import com.roblox.rcs.Keystore;
 
 /*
  * Checks a JWT coming from the WSO2 API Manager.

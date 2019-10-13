@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
   <modelVersion>4.0.0</modelVersion>
-  <groupId>be.i8c.wso2.esb</groupId>
-  <artifactId>jwtauthhandler</artifactId>
-  <name>WSO2 ESB JWT Authentication Handler</name>
-  <version>1.0.0</version>
+  <groupId>com.roblox.rcs</groupId>
+  <artifactId>com.roblox.rcs.jwtauthhandler</artifactId>
+  <name>Roblox WSO2 Jwt Handler</name>
+  <version>1.1.0</version>
   <build>
     <plugins>
       <plugin>
@@ -41,6 +41,26 @@
     <repository>
       <id>sun2</id>
       <url>http://download.java.net/maven/2</url>
+    </repository>
+    <repository>
+      <releases>
+        <updatePolicy>daily</updatePolicy>
+        <checksumPolicy>ignore</checksumPolicy>
+      </releases>
+      <id>wso2.releases</id>
+      <name>WSO2 internal Repository</name>
+      <url>http://maven.wso2.org/nexus/content/repositories/releases/</url>
+    </repository>
+    <repository>
+      <releases>
+        <enabled>false</enabled>
+      </releases>
+      <snapshots>
+        <updatePolicy>daily</updatePolicy>
+      </snapshots>
+      <id>wso2.snapshots</id>
+      <name>Apache Snapshot Repository</name>
+      <url>http://maven.wso2.org/nexus/content/repositories/snapshots/</url>
     </repository>
   </repositories>
   <dependencies>

@@ -1,4 +1,4 @@
-package be.i8c.wso2.esb;
+package com.roblox.rcs;
 
 import org.apache.axiom.om.OMElement;
 import org.apache.axiom.om.OMNode;
@@ -10,7 +10,7 @@ import java.util.Iterator;
 
 import com.nimbusds.jwt.JWTClaimsSet;
 
-import be.i8c.wso2.esb.JwtClaimMapping;
+import com.roblox.rcs.JwtClaimMapping;
 
 public class JwtClaimsMap {
 

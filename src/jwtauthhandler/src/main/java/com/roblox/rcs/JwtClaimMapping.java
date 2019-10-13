@@ -1,4 +1,4 @@
-package be.i8c.wso2.esb;
+package com.roblox.rcs;
 
 public class JwtClaimMapping {
 	public String SourceClaim;

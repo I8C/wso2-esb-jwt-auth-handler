@@ -4,11 +4,11 @@
 
 	<modelVersion>4.0.0</modelVersion>
 
-	<groupId>be.i8c.wso2.esb</groupId>
-	<artifactId>jwtauthhandler</artifactId>
+	<groupId>com.roblox.rcs</groupId>
+	<artifactId>com.roblox.rcs.jwtauthhandler</artifactId>
 	<packaging>jar</packaging>
-	<version>1.0.0</version>
-	<name>WSO2 ESB JWT Authentication Handler</name>
+	<version>1.1.0</version>
+	<name>Roblox WSO2 Jwt Handler</name>
 
 	<repositories>
 		<repository>
@@ -24,6 +24,30 @@
 			<id>sun2</id>
 			<url>http://download.java.net/maven/2</url>
 		</repository>
+
+        <repository>
+            <id>wso2.releases</id>
+            <name>WSO2 internal Repository</name>
+            <url>http://maven.wso2.org/nexus/content/repositories/releases/</url>
+            <releases>
+                <enabled>true</enabled>
+                <updatePolicy>daily</updatePolicy>
+                <checksumPolicy>ignore</checksumPolicy>
+            </releases>
+        </repository>
+
+        <repository>
+            <id>wso2.snapshots</id>
+            <name>Apache Snapshot Repository</name>
+            <url>http://maven.wso2.org/nexus/content/repositories/snapshots/</url>
+            <snapshots>
+                <enabled>true</enabled>
+                <updatePolicy>daily</updatePolicy>
+            </snapshots>
+            <releases>
+                <enabled>false</enabled>
+            </releases>
+        </repository>
 	</repositories>
 	<dependencies>
 		<!-- Check https://github.com/wso2-attic/product-esb/blob/v5.0.0/pom.xml 
